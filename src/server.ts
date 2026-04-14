@@ -44,6 +44,7 @@ const packageJson = require('../package.json');
 // Order matters!
 import './wrappers/extension.js';
 import './wrappers/statistics.js';
+import './wrappers/limiter.js';
 import './wrappers/memoization.js';
 
 const app = express();
