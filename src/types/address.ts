@@ -7,6 +7,12 @@ export type Address = {
   data: Responses['address_content'] | 'empty';
 };
 
+export type DerivedAddress = {
+  address: string;
+  path: string;
+  empty: boolean;
+};
+
 export interface Balance {
   unit: string;
   quantity: string;
@@ -65,7 +71,7 @@ export interface UtxosWithBlocksBundle {
 export type UtxosWithBlocksParameters = {
   address: string;
   path: string;
-  data: TransformedUtxo[] | 'empty';
+  data: TransformedUtxo[];
 }[];
 
 export type GetAddressDataBundle = {

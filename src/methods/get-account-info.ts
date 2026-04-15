@@ -5,14 +5,13 @@ import {
   discoverAccountAddresses,
   getStakingData,
   getStakingAccountTotal,
-  memoizedDeriveAddress,
+  getStakeAddress,
 } from '../utils/address.js';
 import { getTxidsFromAccountAddresses, getAccountAddressesData } from '../utils/account.js';
 import { txIdsToTransactions } from '../utils/transaction.js';
 import { MessageError } from '../utils/message.js';
 import { paginate } from '../utils/common.js';
 import { getAssetBalance, getAssetData, transformAsset } from '../utils/asset.js';
-import { blockfrostAPI } from '../utils/blockfrost-api.js';
 import { logger } from '../utils/logger.js';
 
 export const getAccountInfo = async (
@@ -31,12 +30,7 @@ export const getAccountInfo = async (
     throw new MessageError('Invalid page number - first page is 1');
   }
 
-  const { address: stakeAddress } = memoizedDeriveAddress(
-    publicKey,
-    2,
-    0,
-    blockfrostAPI.options.network !== 'mainnet',
-  );
+  const stakeAddress = getStakeAddress(publicKey);
   const [stakeAddressTotal, stakingData] = await Promise.all([
     getStakingAccountTotal(stakeAddress),
     getStakingData(stakeAddress),
@@ -101,7 +95,7 @@ export const getAccountInfo = async (
 
     _addressesCount = addresses.length; // just a debug helper
 
-    const txids = await getTxidsFromAccountAddresses(addresses, accountEmpty);
+    const txids = accountEmpty ? [] : await getTxidsFromAccountAddresses(addresses);
     const paginatedTxsIds = paginate(txids, pageSizeNumber);
     const requestedPageTxIds = paginatedTxsIds[pageIndex] ?? [];
 
@@ -112,7 +106,7 @@ export const getAccountInfo = async (
       if (details === 'txs') {
         // fetch full transaction objects and set account.history.transactions
         const txs = await txIdsToTransactions(
-          requestedPageTxIds.map(item => ({ address: item.address, txIds: [item.tx_hash] })),
+          requestedPageTxIds.map(item => ({ address: item.address, txId: item.tx_hash })),
           cbor,
         );
 

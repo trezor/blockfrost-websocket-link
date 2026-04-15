@@ -35,11 +35,14 @@ export const memoizedDeriveAddress = memoizee(deriveAddress, {
   profileName: '__address derivation__',
 });
 
+export const getStakeAddress = (publicKey: string) =>
+  memoizedDeriveAddress(publicKey, 2, 0, blockfrostAPI.options.network !== 'mainnet').address;
+
 const discoverAddresses = async (
   publicKey: string,
   type: Addresses.Type,
   accountEmpty?: boolean,
-): Promise<Addresses.Address[]> => {
+): Promise<Addresses.DerivedAddress[]> => {
   if (accountEmpty) {
     // just derive first ADDRESS_GAP_LIMIT and treat them as empty addresses
     const addresses: { address: string; path: string }[] = [];
@@ -54,13 +57,13 @@ const discoverAddresses = async (
 
       addresses.push({ address, path });
     }
-    return addresses.map(addr => ({ address: addr.address, data: 'empty', path: addr.path }));
+    return addresses.map(addr => ({ address: addr.address, empty: true, path: addr.path }));
   }
 
   let lastEmptyCount = 0;
   let addressCount = 0;
 
-  const result: Addresses.Address[] = [];
+  const result: Addresses.DerivedAddress[] = [];
 
   while (lastEmptyCount < ADDRESS_GAP_LIMIT) {
     const promisesBundle: Addresses.Bundle = [];
@@ -82,10 +85,10 @@ const discoverAddresses = async (
     const resultBatch = await Promise.all(
       promisesBundle.map(p =>
         p.promise
-          .then(data => ({ address: p.address, path: p.path, data }))
+          .then(() => ({ address: p.address, path: p.path, empty: false }))
           .catch(error => {
             if (error.status_code === 404) {
-              return { address: p.address, data: 'empty' as const, path: p.path };
+              return { address: p.address, empty: true, path: p.path };
             } else {
               throw error;
             }
@@ -95,7 +98,7 @@ const discoverAddresses = async (
 
     result.push(...resultBatch);
 
-    const lastNonEmpty = [...result].reverse().findIndex(({ data }) => data !== 'empty');
+    const lastNonEmpty = [...result].reverse().findIndex(({ empty }) => !empty);
 
     lastEmptyCount = lastNonEmpty < 0 ? result.length : lastNonEmpty;
   }
@@ -122,10 +125,10 @@ export const discoverAccountAddresses = async (publicKey: string, accountEmpty =
 };
 
 export const addressesToUtxos = async (
-  addresses: { address: string; path: string; data: Responses['address_content'] | 'empty' }[],
-): Promise<{ address: string; path: string; data: Addresses.TransformedUtxo[] | 'empty' }[]> => {
+  addresses: Addresses.DerivedAddress[],
+): Promise<Addresses.UtxosWithBlocksParameters> => {
   const promises = addresses.map(item =>
-    item.data === 'empty'
+    item.empty
       ? []
       : // change batchSize to fetch only 1 page at a time (each page has 100 utxos)
         blockfrostAPI.addressesUtxosAll(item.address, { batchSize: 1 }).catch(error => {
@@ -174,10 +177,6 @@ export const utxosWithBlocks = async (
   const promisesBundle: Promise<Addresses.UtxosWithBlockResponse>[] = [];
 
   for (const utxo of utxos) {
-    if (utxo.data === 'empty') {
-      continue;
-    }
-
     for (const utxoData of utxo.data) {
       const promise = blockfrostAPI.blocks(utxoData.block).then(blockData => ({
         address: utxo.address,
@@ -196,15 +195,15 @@ export const utxosWithBlocks = async (
 };
 
 export const addressesToTxIds = async (
-  addresses: Addresses.Address[],
+  addresses: Addresses.DerivedAddress[],
 ): Promise<{ address: string; data: Responses['address_transactions_content'] }[]> => {
   const promisesBundle: Promise<{
     address: string;
     data: Responses['address_transactions_content'];
   }>[] = [];
 
-  for (const { address, data: status } of addresses) {
-    if (status === 'empty') {
+  for (const { address, empty } of addresses) {
+    if (empty) {
       continue;
     }
 
@@ -231,14 +230,14 @@ export const addressesToTxIds = async (
 };
 
 export const getAddressesData = async (
-  addresses: Addresses.Address[],
+  addresses: Addresses.DerivedAddress[],
   emptyAccount?: boolean,
 ): Promise<Addresses.AddressData[]> => {
   const result = emptyAccount
     ? addresses.map(addr => ({ addr, data: undefined }))
     : await Promise.all(
         addresses.map(addr =>
-          addr.data === 'empty'
+          addr.empty
             ? { addr, data: undefined }
             : blockfrostAPI
                 .addressesTotal(addr.address)

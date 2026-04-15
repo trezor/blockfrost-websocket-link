@@ -7,7 +7,6 @@ describe('getBalanceHistory', () => {
     test(fixture.description, async () => {
       const result = await aggregateTransactions(
         fixture.transactions,
-        // @ts-expect-error mocks
         fixture.addresses,
         fixture.groupBy,
       );
