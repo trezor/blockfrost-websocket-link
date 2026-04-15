@@ -2,7 +2,7 @@ import * as Responses from '../types/response.js';
 import { BigNumber } from 'bignumber.js';
 import { Details } from '../types/message.js';
 import {
-  discoverAddresses,
+  discoverAccountAddresses,
   getStakingData,
   getStakingAccountTotal,
   memoizedDeriveAddress,
@@ -95,12 +95,9 @@ export const getAccountInfo = async (
   };
 
   if (['tokenBalances', 'txids', 'txs'].includes(details)) {
-    const [externalAddresses, internalAddresses] = await Promise.all([
-      discoverAddresses(publicKey, 0, accountEmpty),
-      discoverAddresses(publicKey, 1, accountEmpty),
-    ]);
+    const { external, internal } = await discoverAccountAddresses(publicKey, accountEmpty);
 
-    const addresses = [...externalAddresses, ...internalAddresses];
+    const addresses = [...external, ...internal];
 
     _addressesCount = addresses.length; // just a debug helper
 
@@ -123,11 +120,7 @@ export const getAccountInfo = async (
       }
 
       // fetch data for each address and set account.addresses
-      const accountAddresses = await getAccountAddressesData(
-        externalAddresses,
-        internalAddresses,
-        accountEmpty,
-      );
+      const accountAddresses = await getAccountAddressesData(external, internal, accountEmpty);
 
       accountInfo.addresses = {
         change: accountAddresses.change,

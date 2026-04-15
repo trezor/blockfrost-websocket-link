@@ -1,9 +1,8 @@
-import { discoverAddresses, addressesToUtxos, utxosWithBlocks } from '../utils/address.js';
+import { addressesToUtxos, utxosWithBlocks, discoverAccountAddresses } from '../utils/address.js';
 
 export default async (publicKey: string) => {
-  const externalAddresses = await discoverAddresses(publicKey, 0);
-  const internalAddresses = await discoverAddresses(publicKey, 1);
-  const addresses = [...externalAddresses, ...internalAddresses];
+  const { external, internal } = await discoverAccountAddresses(publicKey);
+  const addresses = [...external, ...internal];
 
   const utxosResult = await addressesToUtxos(addresses);
 
