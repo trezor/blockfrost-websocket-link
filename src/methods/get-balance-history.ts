@@ -6,8 +6,8 @@ import { getRatesForDate } from '../utils/rates.js';
 import { txIdsToTransactions } from '../utils/transaction.js';
 import { FIAT_RATES_ENABLE_ON_TESTNET } from '../constants/config.js';
 import { blockfrostAPI } from '../utils/blockfrost-api.js';
-import { discoverAccountAddresses } from '../utils/address.js';
-import { getTxidsFromAccountAddresses } from '../utils/account.js';
+import { getStakeAddress } from '../utils/address.js';
+import { deriveAccountAddresses, getAccountTxids } from '../utils/account.js';
 
 interface BalanceHistoryBin {
   from: number;
@@ -122,10 +122,10 @@ export const getAccountBalanceHistory = async (
   from?: number,
   to?: number,
 ): Promise<BalanceHistoryData[]> => {
-  const { external, internal } = await discoverAccountAddresses(publicKey);
+  const { external, internal } = await deriveAccountAddresses(publicKey);
+  const stakeAddress = getStakeAddress(publicKey);
+  const txIds = await getAccountTxids(stakeAddress, { external, internal });
   const addresses = [...external, ...internal];
-
-  const txIds = await getTxidsFromAccountAddresses(addresses);
 
   // fetch all transactions and filter only those that are from within from-to interval
   const txs = (
