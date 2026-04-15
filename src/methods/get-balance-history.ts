@@ -1,13 +1,13 @@
 import { BigNumber } from 'bignumber.js';
-import { Address } from '../types/address.js';
 import { BalanceHistoryData } from '../types/response.js';
 import { TxIdsToTransactionsResponse } from '../types/transactions.js';
-import { getAccountTransactionHistory } from '../utils/account.js';
 import { sumAssetBalances } from '../utils/asset.js';
 import { getRatesForDate } from '../utils/rates.js';
 import { txIdsToTransactions } from '../utils/transaction.js';
 import { FIAT_RATES_ENABLE_ON_TESTNET } from '../constants/config.js';
 import { blockfrostAPI } from '../utils/blockfrost-api.js';
+import { discoverAccountAddresses } from '../utils/address.js';
+import { getTxidsFromAccountAddresses } from '../utils/account.js';
 
 interface BalanceHistoryBin {
   from: number;
@@ -17,11 +17,7 @@ interface BalanceHistoryBin {
 
 export const aggregateTransactions = async (
   txs: TxIdsToTransactionsResponse[],
-  addresses: {
-    external: Address[];
-    internal: Address[];
-    all: Address[];
-  },
+  addresses: { address: string }[],
   groupBy: number,
 ): Promise<Omit<BalanceHistoryData, 'rates'>[]> => {
   if (txs.length === 0) {
@@ -67,7 +63,7 @@ export const aggregateTransactions = async (
     let received = new BigNumber(0);
     let sentToSelf = new BigNumber(0);
 
-    const addressesList = new Set(addresses.all.map(a => a.address));
+    const addressesList = new Set(addresses.map(a => a.address));
 
     for (const tx of bin.txs) {
       const { inputs, outputs } = tx.txUtxos;
@@ -126,16 +122,14 @@ export const getAccountBalanceHistory = async (
   from?: number,
   to?: number,
 ): Promise<BalanceHistoryData[]> => {
-  const { txIds, addresses } = await getAccountTransactionHistory({ accountPublicKey: publicKey });
+  const { external, internal } = await discoverAccountAddresses(publicKey);
+  const addresses = [...external, ...internal];
+
+  const txIds = await getTxidsFromAccountAddresses(addresses);
 
   // fetch all transactions and filter only those that are from within from-to interval
   const txs = (
-    await txIdsToTransactions(
-      txIds.map(tx => ({
-        address: tx.address,
-        txIds: [tx.tx_hash],
-      })),
-    )
+    await txIdsToTransactions(txIds.map(tx => ({ address: tx.address, txId: tx.tx_hash })))
   )
     // eslint-disable-next-line unicorn/no-await-expression-member
     .filter(tx => {

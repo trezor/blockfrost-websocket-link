@@ -465,13 +465,11 @@ describe('transaction utils', () => {
 
       // This runs thousands of fetchTransactionData
       // (promise limiter concurrency set to 500 by default)
-      const txs = await transactionUtils.txIdsToTransactions([
-        {
-          address: 'addr',
-          // adding more txs than the maximum number of concurrent request for the limiter causes deadlock
-          txIds: Array.from({ length: 2000 }, (_, i) => `txHash-${i}`),
-        },
-      ], true);
+      const txs = await transactionUtils.txIdsToTransactions(
+        // adding more txs than the maximum number of concurrent request for the limiter causes deadlock
+        Array.from({ length: 2000 }, (_, i) => ({ address: 'addr', txId: `txHash-${i}` })),
+        true,
+      );
 
       // Make sure all promises were resolved and the correct data fetched
       expect(pLimiter.size).toBe(0);

@@ -38,22 +38,17 @@ const fetchTxWithUtxo = async (txHash: string, address: string, cbor?: boolean) 
 };
 
 export const txIdsToTransactions = async (
-  txIdsPerAddress: {
-    address: string;
-    txIds: string[];
-  }[],
+  txs: { txId: string; address: string }[],
   cbor?: boolean,
 ): Promise<TxIdsToTransactionsResponse[]> => {
-  if (txIdsPerAddress.length === 0) {
+  if (txs.length === 0) {
     return [];
   }
 
   const promises: Promise<TxIdsToTransactionsResponse | undefined>[] = [];
 
-  for (const item of txIdsPerAddress) {
-    for (const txId of item.txIds) {
-      promises.push(fetchTxWithUtxo(txId, item.address, cbor));
-    }
+  for (const tx of txs) {
+    promises.push(fetchTxWithUtxo(tx.txId, tx.address, cbor));
   }
 
   // eslint-disable-next-line unicorn/no-await-expression-member

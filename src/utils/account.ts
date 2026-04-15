@@ -1,15 +1,11 @@
-import { Address } from '../types/address.js';
+import { DerivedAddress } from '../types/address.js';
 import { Responses } from '@blockfrost/blockfrost-js';
-import { addressesToTxIds, discoverAccountAddresses, getAddressesData } from './address.js';
+import { addressesToTxIds, getAddressesData } from './address.js';
 
-export const getTxidsFromAccountAddresses = async (addresses: Address[], accountEmpty: boolean) => {
+export const getTxidsFromAccountAddresses = async (addresses: DerivedAddress[]) => {
   const uniqueTxIds: ({
     address: string;
   } & Responses['address_transactions_content'][number])[] = [];
-
-  if (accountEmpty) {
-    return [];
-  }
 
   const transactionsPerAddressList = await addressesToTxIds(addresses);
 
@@ -30,12 +26,12 @@ export const getTxidsFromAccountAddresses = async (addresses: Address[], account
 };
 
 export const getAccountAddressesData = async (
-  externalAddresses: Address[],
-  internalAddresses: Address[],
+  externalAddresses: DerivedAddress[],
+  internalAddresses: DerivedAddress[],
   accountEmpty: boolean,
 ) => {
-  const usedExternalAddresses = externalAddresses.filter(a => a.data !== 'empty');
-  const unusedExternalAddresses = externalAddresses.filter(a => a.data === 'empty');
+  const usedExternalAddresses = externalAddresses.filter(a => !a.empty);
+  const unusedExternalAddresses = externalAddresses.filter(a => a.empty);
   const change = await getAddressesData(internalAddresses, accountEmpty);
   const used = await getAddressesData(usedExternalAddresses, accountEmpty);
 
@@ -48,20 +44,4 @@ export const getAccountAddressesData = async (
   }));
 
   return { change, used, unused };
-};
-
-export const getAccountTransactionHistory = async (parameters: { accountPublicKey: string }) => {
-  const { external, internal } = await discoverAccountAddresses(parameters.accountPublicKey);
-  const addresses = [...external, ...internal];
-
-  const txIds = await getTxidsFromAccountAddresses(addresses, false);
-
-  return {
-    addresses: {
-      external: [...external],
-      internal: [...internal],
-      all: [...addresses],
-    },
-    txIds,
-  };
 };
