@@ -72,18 +72,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@blockfrost/blockfrost-js@npm:6.0.0-beta.2":
-  version: 6.0.0-beta.2
-  resolution: "@blockfrost/blockfrost-js@npm:6.0.0-beta.2"
+"@blockfrost/blockfrost-js@npm:^6.1.1":
+  version: 6.1.1
+  resolution: "@blockfrost/blockfrost-js@npm:6.1.1"
   dependencies:
-    "@blockfrost/openapi": "npm:0.1.71"
-    "@emurgo/cardano-serialization-lib-nodejs": "npm:^13.2.1"
+    "@blockfrost/openapi": "npm:0.1.86"
+    "@emurgo/cardano-serialization-lib-nodejs": "npm:^15.0.3"
     "@emurgo/cip14-js": "npm:3.0.1"
     bottleneck: "npm:^2.19.5"
     form-data: "npm:^4.0.0"
     got: "npm:^11.8.6"
     json-bigint: "npm:^1.0.0"
-  checksum: 407b8712a86a450499b803d73319a1306f42cceb9b488df6959c93e2341aa8c1240324fc1b57100788d6ab9565fd76eb23f00ebfe4632975beca3e95ef4e6f3f
+  checksum: 75cf6c0275cf3b561cbc8a498f3d858d0f4d3d2898b157c57b8dba42e6261e72eccb0e005fa0c444b7b5f0d6ec9f4c6ce9b036e9709924ccb9aa8788d1116068
   languageName: node
   linkType: hard
 
@@ -91,7 +91,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@blockfrost/blockfrost-websocket-link@workspace:."
   dependencies:
-    "@blockfrost/blockfrost-js": "npm:6.0.0-beta.2"
+    "@blockfrost/blockfrost-js": "npm:^6.1.1"
     "@emurgo/cardano-serialization-lib-nodejs": "npm:^13.2.1"
     "@esbuild/darwin-arm64": "npm:0.19.8"
     "@esbuild/linux-x64": "npm:0.19.8"
@@ -142,15 +142,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@blockfrost/openapi@npm:0.1.71":
-  version: 0.1.71
-  resolution: "@blockfrost/openapi@npm:0.1.71"
+"@blockfrost/openapi@npm:0.1.86":
+  version: 0.1.86
+  resolution: "@blockfrost/openapi@npm:0.1.86"
   dependencies:
-    ajv: "npm:^8.12.0"
-    cbor: "npm:^9.0.1"
+    ajv: "npm:^8.17.1"
+    cbor: "npm:^9.0.2"
     rimraf: "npm:6.0.1"
-    yaml: "npm:^2.3.4"
-  checksum: 34c7c79aad3302e8d6f434020a9e574c05cb1929b8c48efe04b297c55ef61f7ed3316a587dcd1af7818a0b154998e3afd8677da17b97676f19144de103c4a4ed
+    yaml: "npm:^2.6.1"
+  checksum: b7226a84f9ecbe821971fc4c0fa39a91dd5dd078012684837e7d97a4be0d7692b37d863b7f09158f769352e7e51e22e12b9f08efc548e3d61b81e92a4229748b
   languageName: node
   linkType: hard
 
@@ -158,6 +158,13 @@ __metadata:
   version: 13.2.1
   resolution: "@emurgo/cardano-serialization-lib-nodejs@npm:13.2.1"
   checksum: 6572ac1baebe1032a0e1ba701e8be0dc74d00ff332f1b58622851532d9bded9d89b797d862551842fce420ece05b67ced94c9edad33e7f124e48d74c28b0ac4e
+  languageName: node
+  linkType: hard
+
+"@emurgo/cardano-serialization-lib-nodejs@npm:^15.0.3":
+  version: 15.0.3
+  resolution: "@emurgo/cardano-serialization-lib-nodejs@npm:15.0.3"
+  checksum: 24b9944fdb50841b8bda3176e8ca0caf2a521b0ebebcc6d0502c3bf070af4151b1454a921eba375a2c507cc1658ead812ed90594dc8276e5e5143a252adcdfc2
   languageName: node
   linkType: hard
 
@@ -1380,7 +1387,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ajv@npm: ^8.17.1, ajv@npm:^8.12.0":
+"ajv@npm: ^8.17.1":
   version: 8.17.1
   resolution: "ajv@npm:8.17.1"
   dependencies:
@@ -1401,6 +1408,18 @@ __metadata:
     json-schema-traverse: "npm:^0.4.1"
     uri-js: "npm:^4.2.2"
   checksum: 48d6ad21138d12eb4d16d878d630079a2bda25a04e745c07846a4ad768319533031e28872a9b3c5790fa1ec41aabdf2abed30a56e5a03ebc2cf92184b8ee306c
+  languageName: node
+  linkType: hard
+
+"ajv@npm:^8.17.1":
+  version: 8.18.0
+  resolution: "ajv@npm:8.18.0"
+  dependencies:
+    fast-deep-equal: "npm:^3.1.3"
+    fast-uri: "npm:^3.0.1"
+    json-schema-traverse: "npm:^1.0.0"
+    require-from-string: "npm:^2.0.2"
+  checksum: bfed9de827a2b27c6d4084324eda76a4e32bdde27410b3e9b81d06e6f8f5c78370fc6b93fe1d869f1939ff1d7c4ae8896960995acb8425e3e9288c8884247c48
   languageName: node
   linkType: hard
 
@@ -1861,7 +1880,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cbor@npm:^9.0.1":
+"cbor@npm:^9.0.2":
   version: 9.0.2
   resolution: "cbor@npm:9.0.2"
   dependencies:
@@ -6896,12 +6915,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yaml@npm:^2.3.4":
-  version: 2.6.0
-  resolution: "yaml@npm:2.6.0"
+"yaml@npm:^2.6.1":
+  version: 2.8.3
+  resolution: "yaml@npm:2.8.3"
   bin:
     yaml: bin.mjs
-  checksum: f4369f667c7626c216ea81b5840fe9b530cdae4cff2d84d166ec1239e54bf332dbfac4a71bf60d121f8e85e175364a4e280a520292269b6cf9d074368309adf9
+  checksum: ecad41d39d34fae5cc17ea2d4b7f7f55faacd45cbce8983ba22d48d1ed1a92ed242ea49ea813a79ac39a69f75f9c5a03e7b5395fd954d55476f25e21a47c141d
   languageName: node
   linkType: hard
 

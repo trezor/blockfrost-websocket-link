@@ -25,6 +25,7 @@ export default [
       asset_mint_or_burn_count: 0,
       redeemer_count: 0,
       valid_contract: true,
+      treasury_donation: '0',
     },
     result: {
       id: 1,
@@ -58,6 +59,7 @@ export default [
         asset_mint_or_burn_count: 0,
         redeemer_count: 0,
         valid_contract: true,
+        treasury_donation: '0',
       },
     },
   },
