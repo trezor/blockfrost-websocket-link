@@ -35,7 +35,7 @@ export const memoizedDeriveAddress = memoizee(deriveAddress, {
   profileName: '__address derivation__',
 });
 
-export const discoverAddresses = async (
+const discoverAddresses = async (
   publicKey: string,
   type: Addresses.Type,
   accountEmpty?: boolean,
@@ -110,6 +110,15 @@ export const discoverAddresses = async (
   });
 
   return sortedResult;
+};
+
+export const discoverAccountAddresses = async (publicKey: string, accountEmpty = false) => {
+  const [external, internal] = await Promise.all([
+    discoverAddresses(publicKey, 0, accountEmpty),
+    discoverAddresses(publicKey, 1, accountEmpty),
+  ]);
+
+  return { external, internal };
 };
 
 export const addressesToUtxos = async (
