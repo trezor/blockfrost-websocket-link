@@ -1,13 +1,12 @@
 import * as Responses from '../types/response.js';
 import { BigNumber } from 'bignumber.js';
 import { Details } from '../types/message.js';
+import { getStakingData, getStakingAccountTotal, getStakeAddress } from '../utils/address.js';
 import {
-  discoverAccountAddresses,
-  getStakingData,
-  getStakingAccountTotal,
-  getStakeAddress,
-} from '../utils/address.js';
-import { getTxidsFromAccountAddresses, getAccountAddressesData } from '../utils/account.js';
+  deriveAccountAddresses,
+  getAccountAddressesData,
+  getAccountTxids,
+} from '../utils/account.js';
 import { txIdsToTransactions } from '../utils/transaction.js';
 import { MessageError } from '../utils/message.js';
 import { paginate } from '../utils/common.js';
@@ -89,13 +88,13 @@ export const getAccountInfo = async (
   };
 
   if (['tokenBalances', 'txids', 'txs'].includes(details)) {
-    const { external, internal } = await discoverAccountAddresses(publicKey, accountEmpty);
+    const { external, internal } = await deriveAccountAddresses(publicKey, accountEmpty);
 
     const addresses = [...external, ...internal];
 
     _addressesCount = addresses.length; // just a debug helper
 
-    const txids = accountEmpty ? [] : await getTxidsFromAccountAddresses(addresses);
+    const txids = accountEmpty ? [] : await getAccountTxids(stakeAddress, { external, internal });
     const paginatedTxsIds = paginate(txids, pageSizeNumber);
     const requestedPageTxIds = paginatedTxsIds[pageIndex] ?? [];
 
