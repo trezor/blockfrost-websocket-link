@@ -41,6 +41,8 @@ import { MessageId, Messages } from './types/message.js';
 const require = createRequire(import.meta.url);
 const packageJson = require('../package.json');
 
+import './wrappers/extension.js';
+
 const app = express();
 
 if (!process.env.BLOCKFROST_PROJECT_ID) {
