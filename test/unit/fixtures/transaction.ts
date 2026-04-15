@@ -35,6 +35,7 @@ export const transformTransactionData = [
       asset_mint_or_burn_count: 0,
       redeemer_count: 0,
       valid_contract: true,
+      treasury_donation: '0',
     },
     result: {
       hash: '115293f3a35ca4f4fc01fb0e083f85dde7e77435d53dc15f0a38fa591858bb99',
@@ -75,6 +76,7 @@ export const transformTransactionData = [
       asset_mint_or_burn_count: 0,
       redeemer_count: 0,
       valid_contract: true,
+      treasury_donation: '0',
     },
   },
 ];
