@@ -1,4 +1,3 @@
-import { ADDRESS_GAP_LIMIT } from '../constants/config.js';
 import * as Addresses from '../types/address.js';
 import { blockfrostAPI } from '../utils/blockfrost-api.js';
 import {
@@ -7,7 +6,6 @@ import {
   Responses,
 } from '@blockfrost/blockfrost-js';
 import memoizee from 'memoizee';
-import { getAssetData, transformAsset } from './asset.js';
 
 export const deriveAddress = (
   publicKey: string,
@@ -38,139 +36,6 @@ export const memoizedDeriveAddress = memoizee(deriveAddress, {
 export const getStakeAddress = (publicKey: string) =>
   memoizedDeriveAddress(publicKey, 2, 0, blockfrostAPI.options.network !== 'mainnet').address;
 
-const discoverAddresses = async (
-  publicKey: string,
-  type: Addresses.Type,
-  accountEmpty?: boolean,
-): Promise<Addresses.DerivedAddress[]> => {
-  if (accountEmpty) {
-    // just derive first ADDRESS_GAP_LIMIT and treat them as empty addresses
-    const addresses: { address: string; path: string }[] = [];
-
-    for (let index = 0; index < ADDRESS_GAP_LIMIT; index++) {
-      const { address, path } = memoizedDeriveAddress(
-        publicKey,
-        type,
-        index,
-        blockfrostAPI.options.network !== 'mainnet',
-      );
-
-      addresses.push({ address, path });
-    }
-    return addresses.map(addr => ({ address: addr.address, empty: true, path: addr.path }));
-  }
-
-  let lastEmptyCount = 0;
-  let addressCount = 0;
-
-  const result: Addresses.DerivedAddress[] = [];
-
-  while (lastEmptyCount < ADDRESS_GAP_LIMIT) {
-    const promisesBundle: Addresses.Bundle = [];
-
-    for (let index = 0; index < ADDRESS_GAP_LIMIT - lastEmptyCount; index++) {
-      const { address, path } = memoizedDeriveAddress(
-        publicKey,
-        type,
-        addressCount,
-        blockfrostAPI.options.network !== 'mainnet',
-      );
-
-      addressCount++;
-      const promise = blockfrostAPI.addresses(address);
-
-      promisesBundle.push({ address, promise, path });
-    }
-
-    const resultBatch = await Promise.all(
-      promisesBundle.map(p =>
-        p.promise
-          .then(() => ({ address: p.address, path: p.path, empty: false }))
-          .catch(error => {
-            if (error.status_code === 404) {
-              return { address: p.address, empty: true, path: p.path };
-            } else {
-              throw error;
-            }
-          }),
-      ),
-    );
-
-    result.push(...resultBatch);
-
-    const lastNonEmpty = [...result].reverse().findIndex(({ empty }) => !empty);
-
-    lastEmptyCount = lastNonEmpty < 0 ? result.length : lastNonEmpty;
-  }
-
-  const sortedResult = result.sort((item1, item2) => {
-    // eslint-disable-next-line unicorn/prefer-at
-    const path1 = Number.parseInt(item1.path.split('/').slice(-1)[0], 10);
-    // eslint-disable-next-line unicorn/prefer-at
-    const path2 = Number.parseInt(item2.path.split('/').slice(-1)[0], 10);
-
-    return path1 - path2;
-  });
-
-  return sortedResult;
-};
-
-export const discoverAccountAddresses = async (publicKey: string, accountEmpty = false) => {
-  const [external, internal] = await Promise.all([
-    discoverAddresses(publicKey, 0, accountEmpty),
-    discoverAddresses(publicKey, 1, accountEmpty),
-  ]);
-
-  return { external, internal };
-};
-
-export const addressesToUtxos = async (
-  addresses: Addresses.DerivedAddress[],
-): Promise<Addresses.UtxosWithBlocksParameters> => {
-  const promises = addresses.map(item =>
-    item.empty
-      ? []
-      : // change batchSize to fetch only 1 page at a time (each page has 100 utxos)
-        blockfrostAPI.addressesUtxosAll(item.address, { batchSize: 1 }).catch(error => {
-          if (error instanceof BlockfrostServerError && error.status_code === 404) {
-            return [];
-          } else {
-            throw error;
-          }
-        }),
-  );
-
-  const allUtxos = await Promise.all(promises);
-
-  const assets = new Set<string>();
-
-  for (const addressUtxos of allUtxos) {
-    for (const utxo of addressUtxos) {
-      for (const a of utxo.amount) {
-        if (a.unit !== 'lovelace') {
-          assets.add(a.unit);
-        }
-      }
-    }
-  }
-
-  const tokenMetadata = await Promise.all([...assets].map(a => getAssetData(a)));
-
-  return addresses.map((addr, index) => ({
-    address: addr.address,
-    data: allUtxos[index].map(utxo => ({
-      ...utxo,
-      amount: utxo.amount.map(asset =>
-        transformAsset(
-          asset,
-          tokenMetadata.find(m => m?.asset),
-        ),
-      ),
-    })),
-    path: addr.path,
-  }));
-};
-
 export const utxosWithBlocks = async (
   utxos: Addresses.UtxosWithBlocksParameters,
 ): Promise<Addresses.UtxosWithBlockResponse[]> => {
@@ -187,41 +52,6 @@ export const utxosWithBlocks = async (
 
       promisesBundle.push(promise);
     }
-  }
-
-  const result = await Promise.all(promisesBundle);
-
-  return result;
-};
-
-export const addressesToTxIds = async (
-  addresses: Addresses.DerivedAddress[],
-): Promise<{ address: string; data: Responses['address_transactions_content'] }[]> => {
-  const promisesBundle: Promise<{
-    address: string;
-    data: Responses['address_transactions_content'];
-  }>[] = [];
-
-  for (const { address, empty } of addresses) {
-    if (empty) {
-      continue;
-    }
-
-    const promise =
-      // 1 page (100 txs) per address at a time should be more efficient default value
-      // compared to fetching 10 pages (1000 txs) per address
-      blockfrostAPI
-        .addressesTransactionsAll(address, { batchSize: 1 })
-        .then(data => ({ address, data }))
-        .catch(error => {
-          if (error instanceof BlockfrostServerError && error.status_code === 404) {
-            return { address, data: [] };
-          } else {
-            throw error;
-          }
-        });
-
-    promisesBundle.push(promise);
   }
 
   const result = await Promise.all(promisesBundle);
