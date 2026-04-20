@@ -33,3 +33,5 @@ export const HEALTHCHECK_FAIL_THRESHOLD_MS = 6 * METRICS_COLLECTOR_INTERVAL_MS; 
 
 // Timeout for requests dispatched by blockfrost sdk
 export const BLOCKFROST_REQUEST_TIMEOUT = 30_000;
+
+export const SUBMIT_API_URL = process.env.CARDANO_SUBMIT_API_URL; // http://localhost:8090/api/submit/tx;
