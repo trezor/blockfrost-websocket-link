@@ -32,7 +32,7 @@ interface Events {
 }
 
 // eslint-disable-next-line unicorn/prefer-event-target
-const events: Events = new EventEmitter();
+const events: Events = new EventEmitter().setMaxListeners(20); // memoization wrappers register 11+ listeners per event
 
 const latestBlocks: (Block & { addresses: BlockAddresses })[] = [];
 
