@@ -93,7 +93,21 @@ const withMemoAccount = <Response>(func: (stakeAddress: string) => Promise<Respo
   return cache;
 };
 
-const withMemo = <Response>(func: (param: string) => Promise<Response>) =>
+const withMemoEpoch = <Response>(func: () => Promise<Response>) => {
+  const cache = memoizee(func, {
+    ...defaultOptions,
+    promise: true, // don't cache rejections
+    profileName: func.name,
+  });
+
+  events.on('newBlock', () => cache.clear());
+  events.on('reorgBlock', () => cache.clear());
+  events.on('reorgAll', () => cache.clear());
+
+  return cache;
+};
+
+const withMemo = <Response, Param>(func: (param: Param) => Promise<Response>) =>
   memoizee(func, {
     ...defaultOptions,
     promise: true, // don't cache rejections
@@ -110,6 +124,9 @@ blockfrostAPI.addressesTotal = withMemoAddress(blockfrostAPI.addressesTotal);
 blockfrostAPI.addressesTransactionsAll = withMemoAddress(blockfrostAPI.addressesTransactionsAll);
 blockfrostAPI.addressesUtxosAll = withMemoAddress(blockfrostAPI.addressesUtxosAll);
 blockfrostAPI.assetsById = withMemo(blockfrostAPI.assetsById);
+blockfrostAPI.epochsLatest = withMemoEpoch(blockfrostAPI.epochsLatest);
+blockfrostAPI.epochsLatestParameters = withMemoEpoch(blockfrostAPI.epochsLatestParameters);
+blockfrostAPI.epochsParameters = withMemo(blockfrostAPI.epochsParameters);
 blockfrostAPI.txs = withMemo(blockfrostAPI.txs);
 blockfrostAPI.txsCbor = withMemo(blockfrostAPI.txsCbor);
 blockfrostAPI.txsUtxos = withMemo(blockfrostAPI.txsUtxos);
