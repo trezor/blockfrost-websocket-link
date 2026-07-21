@@ -127,6 +127,7 @@ blockfrostAPI.assetsById = withMemo(blockfrostAPI.assetsById);
 blockfrostAPI.epochsLatest = withMemoEpoch(blockfrostAPI.epochsLatest);
 blockfrostAPI.epochsLatestParameters = withMemoEpoch(blockfrostAPI.epochsLatestParameters);
 blockfrostAPI.epochsParameters = withMemo(blockfrostAPI.epochsParameters);
+blockfrostAPI.governance.drepsById = withMemo(blockfrostAPI.governance.drepsById);
 blockfrostAPI.txs = withMemo(blockfrostAPI.txs);
 blockfrostAPI.txsCbor = withMemo(blockfrostAPI.txsCbor);
 blockfrostAPI.txsUtxos = withMemo(blockfrostAPI.txsUtxos);
