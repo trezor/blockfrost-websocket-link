@@ -38,7 +38,7 @@ ${Object.entries(
 )
   .sort(([, a], [, b]) => b.length - a.length)
   .map(([method, times]) => {
-    const resolved = times.filter(Boolean);
+    const resolved = times.filter(n => !Number.isNaN(n));
     const pending = times.length - resolved.length;
 
     if (resolved.length === 0) {
