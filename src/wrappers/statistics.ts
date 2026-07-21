@@ -28,13 +28,11 @@ const log = () => {
 
 ${printRow('', 'Pending (#)', 'Resolved (#)', 'Avg (ms)', 'Min (ms)', 'Max (ms)')}
 ${Object.entries(
-  CALLS.reduce<{ [method: string]: number[] }>(
-    (acc, [method, from, to]) => ({
-      ...acc,
-      [method]: [...(acc[method] ?? []), to ? to - from : Number.NaN],
-    }),
-    {},
-  ),
+  CALLS.reduce<{ [method: string]: number[] }>((acc, [method, from, to]) => {
+    (acc[method] ??= []).push(to ? to - from : Number.NaN);
+
+    return acc;
+  }, {}),
 )
   .sort(([, a], [, b]) => b.length - a.length)
   .map(([method, times]) => {
